@@ -2,7 +2,7 @@ import requests
 from lxml import etree
 
 URL = 'https://pypi.org/search/?c=Programming+Language+%3A%3A+Python+%3A%3A+3'
-
+URL_HEAD = 'https://pypi.org/'
 
 class Web:
     def __init__(self, url=URL, save_dir='./'):
@@ -32,9 +32,10 @@ class Web:
     def decode(self):
         tree = etree.HTML(self.content)
         list_li = tree.xpath('//ul[@class="unstyled"]/li')
+        list_herl = []
         for li in list_li:
-            list_herl = li.xpath('./a[@href]')[0]
-        print()
+            list_herl.append(URL_HEAD + str(li.xpath('./a/@href')[0]))
+        print(list_herl)
 
 a = Web()
 a.get_content()
