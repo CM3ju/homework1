@@ -2,7 +2,7 @@ import requests
 from lxml import etree
 import pathlib
 
-URL = 'https://pypi.org/search/?c=Programming+Language+%3A%3A+Python+%3A%3A+3'
+URL = 'https://pypi.org/search/?c=Programming+Language+%3A%3A+Python+%3A%3A+3&page='
 URL_HEAD = 'https://pypi.org/'
 
 
@@ -29,7 +29,7 @@ class MainPage:
     def get_content(self, page_name='main_page', save=False):
         content = requests.get(self.url)
         if save:
-            with open(page_name+'.html', 'w', encoding='utf-8') as f:
+            with open(page_name + '.html', 'w', encoding='utf-8') as f:
                 f.write(content.text)
             print(f'get content successfully, file path is: {pathlib.Path.absolute(pathlib.Path(self.save_dir))}')
             print(f'{page_name + ".html"}')
@@ -55,18 +55,23 @@ class SubPage(MainPage):
         time = tree.xpath('//*/p[@class="package-header__date"]/time')[0].text.strip(' \n')
         return name, time,
 
-def page(url):
-    main_page = MainPage(url)
-    main_page.get_status()
-    main_page.get_content(save=True)
-    sub_page_list = main_page.decode()
-    print(sub_page_list)
-    for sub_page in sub_page_list:
+
+def page(url, N):
+    total_list = []
+    for _ in range(N):
+        main_page = MainPage(url + str(_))
+        main_page.get_status()
+        main_page.get_content(save=True)
+        sub_page_list = main_page.decode()
+        total_list += sub_page_list
+    print(total_list)
+    print(len(total_list))
+    for sub_page in total_list:
         page_obj = SubPage(sub_page)
-        page_obj.get_content(sub_page.replace(URL_HEAD+'/project', '').strip('/'))
+        page_obj.get_content(sub_page.replace(URL_HEAD + '/project', '').strip('/'))
         name, time = page_obj.get_info()
         print(f'library name is: {name}, release time is: {time}')
 
 
 if __name__ == "__main__":
-    page(URL)
+    page(URL, 4)
