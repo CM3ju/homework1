@@ -1,6 +1,8 @@
 import requests
 from lxml import etree
 import pathlib
+import urllib.request
+import os
 
 URL = 'https://pypi.org/search/?c=Programming+Language+%3A%3A+Python+%3A%3A+3&page='
 URL_HEAD = 'https://pypi.org/'
@@ -53,10 +55,11 @@ class SubPage(MainPage):
         tree = etree.HTML(self.content)
         name = tree.xpath('//*/h1[@class="package-header__name"]')[0].text.strip(' \n')
         time = tree.xpath('//*/p[@class="package-header__date"]/time')[0].text.strip(' \n')
-        return name, time,
+        download = tree.xpath('//*/div[@class="card file__card"]/a/@href')[0].strip(' \n')
+        return name, time, download
 
 
-def page(url, N):
+def page(url, N, save_file=False, save_dir='./lib/'):
     total_list = []
     for _ in range(N):
         main_page = MainPage(url + str(_))
@@ -69,9 +72,15 @@ def page(url, N):
     for sub_page in total_list:
         page_obj = SubPage(sub_page)
         page_obj.get_content(sub_page.replace(URL_HEAD + '/project', '').strip('/'))
-        name, time = page_obj.get_info()
-        print(f'library name is: {name}, release time is: {time}')
+        name, time, download = page_obj.get_info()
+        filename = download.split('/')[-1]
+        print(f'library name is: {name}, release time is: {time}, download link is: {download}')
+        if save_file:
+            if not os.path.exists(save_dir):
+                os.mkdir(save_dir)
+            urllib.request.urlretrieve(download, save_dir + filename)
+        print(save_dir + filename)
 
 
 if __name__ == "__main__":
-    page(URL, 5)
+    page(URL, 1, save_file=True)
