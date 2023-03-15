@@ -96,5 +96,7 @@ def run_multi_thread(total_list, n_thread, save_file=False, save_dir='./lib/'):
         thread.join()
 
 if __name__ == "__main__":
-    total_list = page(URL, 15)
-    run_multi_thread(total_list, 4, save_file=True, save_dir='./lib/')
+    num_threads = 4
+    num_pages = 20
+    total_list = page(URL, num_pages)
+    run_multi_thread(total_list, num_threads, save_file=True, save_dir='./lib/')
