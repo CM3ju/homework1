@@ -59,7 +59,7 @@ class SubPage(MainPage):
         return name, time, download
 
 
-def page(url, N, save_file=False, save_dir='./lib/'):
+def page(url, N):
     total_list = []
     for _ in range(N):
         main_page = MainPage(url + str(_))
@@ -69,7 +69,10 @@ def page(url, N, save_file=False, save_dir='./lib/'):
         total_list += sub_page_list
     print(total_list)
     print(len(total_list))
-    for sub_page in total_list:
+    return total_list
+
+def parse_subpages(sub_pages, save_file=False, save_dir='./lib/'):
+  for sub_page in sub_pages:
         page_obj = SubPage(sub_page)
         page_obj.get_content(sub_page.replace(URL_HEAD + '/project', '').strip('/'))
         name, time, download = page_obj.get_info()
@@ -81,6 +84,17 @@ def page(url, N, save_file=False, save_dir='./lib/'):
             urllib.request.urlretrieve(download, save_dir + filename)
         print(save_dir + filename)
 
+def run_multi_thread(total_list, n_thread, save_file=False, save_dir='./lib/'):
+    subpage_div = [total_list[i:i + len(total_list) // n_thread] for i in range(0, len(total_list), len(total_list) // n_thread)]
+    threads = []
+    for sub_pages in subpage_div:
+        thread = threading.Thread(target=parse_subpages, args=(sub_pages, save_file, save_dir))
+        thread.start()
+        threads.append(thread)
+
+    for thread in threads:
+        thread.join()
 
 if __name__ == "__main__":
-    page(URL, 1, save_file=True)
+    total_list = page(URL, 15)
+    run_multi_thread(total_list, 4, save_file=True, save_dir='./lib/')
